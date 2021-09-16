@@ -21,6 +21,21 @@ It uses a 512x512 unconditional ImageNet diffusion model fine-tuned from OpenAI'
 
 Either the 256 or 512 models can be used here (by setting `--output_size` to either 256 or 512)
 
+## Set up
+
+This example uses [Anaconda](https://www.anaconda.com/products/individual#Downloads) to manage virtual Python environments.
+
+Create a new virtual Python environment for VQGAN-CLIP:
+
+```sh
+conda create --name cgd python=3.9
+conda activate cgd
+```
+
+Run the setup file:
+```sh
+./setup.sh
+```
 
 ## Citations
 
