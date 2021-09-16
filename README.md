@@ -25,8 +25,7 @@ Either the 256 or 512 models can be used here (by setting `--output_size` to eit
 
 This example uses [Anaconda](https://www.anaconda.com/products/individual#Downloads) to manage virtual Python environments.
 
-Create a new virtual Python environment for VQGAN-CLIP:
-
+Create a new virtual Python environment for CLIP-Guided-Diffusion:
 ```sh
 conda create --name cgd python=3.9
 conda activate cgd
