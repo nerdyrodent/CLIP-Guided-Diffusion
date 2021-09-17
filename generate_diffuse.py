@@ -35,6 +35,7 @@ import gc
 import io
 import math
 import sys
+import os
 
 from IPython import display
 import lpips
@@ -55,7 +56,8 @@ from guided_diffusion.script_util import create_model_and_diffusion, model_and_d
 
 # Testing
 #import kornia.augmentation as K
-
+import matplotlib.pyplot as plt
+import numpy as np
 
 # Args
 # Create the parser
@@ -71,7 +73,8 @@ vq_parser.add_argument("-is",   "--init_scale", type=int, help="Initial image sc
 
 vq_parser.add_argument("-m",    "--clip_model", type=str, help="CLIP model (e.g. ViT-B/32, ViT-B/16)", default='ViT-B/16', dest='clip_model')
 
-vq_parser.add_argument("-t",    "--timesteps", type=int, help="Number of timesteps", default=1000, dest='timesteps') # iterations
+vq_parser.add_argument("-t",    "--timesteps", type=str, help="Number of timesteps", default='1000', dest='timesteps') # num iterations, or one of ddim25, ddim50, ddim150, ddim250, ddim500, ddim1000 - must be mod0 of diffusion_steps
+vq_parser.add_argument("-ds",   "--diffusion_steps", type=int, help="Diffusion steps", default=1000, dest='diffusion_steps')
 vq_parser.add_argument("-se",   "--save_every", type=int, help="Image update frequency", default=100, dest='save_every')
 
 vq_parser.add_argument("-bs",   "--batch_size", type=int, help="Batch size", default=1, dest='batch_size')
@@ -90,6 +93,8 @@ vq_parser.add_argument("-s",    "--seed", type=int, help="Seed", default=None, d
 vq_parser.add_argument("-o",    "--output", type=str, help="Output file", default="output.png", dest='output')
 
 vq_parser.add_argument("-nfp",  "--no_fp16", action='store_false', help="Disable fp16?", dest='use_fp16')
+vq_parser.add_argument("-pl",   "--plot_loss", action='store_true', help="Plot loss?", dest='graph_loss')
+
 
 # Execute the parse_args() method
 args = vq_parser.parse_args()
@@ -99,6 +104,9 @@ if args.image_size != 256 and args.image_size != 512:
 
 # Settings
 prompts = [phrase.strip() for phrase in args.prompts.split("|")]
+if args.image_prompts:
+    args.image_prompts = args.image_prompts.split("|")
+    args.image_prompts = [image.strip() for image in args.image_prompts]    
 image_prompts = args.image_prompts
 batch_size = args.batch_size
 clip_guidance_scale = args.clip_guidance_scale
@@ -184,9 +192,9 @@ model_config = model_and_diffusion_defaults()
 model_config.update({
     'attention_resolutions': '32, 16, 8',
     'class_cond': False,
-    'diffusion_steps': 1000,
+    'diffusion_steps': args.diffusion_steps,
     'rescale_timesteps': True,
-    'timestep_respacing': str(args.timesteps),
+    'timestep_respacing': args.timesteps,
     'image_size': args.image_size,
     'learn_sigma': True,
     'noise_schedule': 'linear',
@@ -230,7 +238,9 @@ def do_run():
     else:
         seed = args.seed  
     torch.manual_seed(seed)
-    print("Seed: ", seed)
+    print("Seed:", seed)
+    
+    loss_test = []
 
     make_cutouts = MakeCutouts(clip_size, cutn, cut_pow)
     side_x = side_y = model_config['image_size']
@@ -238,11 +248,13 @@ def do_run():
     target_embeds, weights = [], []
 
     for prompt in prompts:
+        print('Text prompt:', prompt)
         txt, weight = parse_prompt(prompt)
         target_embeds.append(clip_model.encode_text(clip.tokenize(txt).to(device)).float())
         weights.append(weight)
 
     for prompt in image_prompts:
+        print('Image prompt:', prompt)    
         path, weight = parse_prompt(prompt)
         img = Image.open(fetch(path)).convert('RGB')
         img = TF.resize(img, min(side_x, side_y, *img.size), transforms.InterpolationMode.LANCZOS)
@@ -259,6 +271,7 @@ def do_run():
 
     init = None
     if init_image is not None:
+        print('Initial image:', init_image)
         init = Image.open(fetch(init_image)).convert('RGB')
         init = init.resize((side_x, side_y), Image.LANCZOS)
         init = TF.to_tensor(init).to(device).unsqueeze(0).mul(2).sub(1)
@@ -274,6 +287,7 @@ def do_run():
             fac = diffusion.sqrt_one_minus_alphas_cumprod[cur_t]
             x_in = out['pred_xstart'] * fac + x * (1 - fac)
             x_in_grad = torch.zeros_like(x_in)
+            
             for i in range(cutn_batches):
                 clip_in = normalize(make_cutouts(x_in.add(1).div(2)))
                 image_embeds = clip_model.encode_image(clip_in).float()
@@ -281,9 +295,12 @@ def do_run():
                 dists = dists.view([cutn, n, -1])
                 losses = dists.mul(weights).sum(2).mean(0)
                 x_in_grad += torch.autograd.grad(losses.sum() * clip_guidance_scale, x_in)[0] / cutn_batches
+                loss_test.append(losses.item()) # Loss test
+            
             tv_losses = tv_loss(x_in)
             range_losses = range_loss(out['pred_xstart'])
             loss = tv_losses.sum() * tv_scale + range_losses.sum() * range_scale
+            
             if init is not None and init_scale:
                 init_losses = lpips_model(x_in, init)
                 loss = loss + init_losses.sum() * init_scale
@@ -320,8 +337,16 @@ def do_run():
                     TF.to_pil_image(image.add(1).div(2).clamp(0, 1)).save(args.output)
                     tqdm.write(f'Batch {i}, step {j}, output {k}:')
                     #display.display(display.Image(filename))
+
+                if args.graph_loss:
+                    plt.plot(np.array(loss_test), 'r')    
+                    plot_filename = (os.path.basename(args.output).split('.')[0])
+                    plot_filename = plot_filename + '-loss.jpg'
+                    plt.savefig(plot_filename)                     
+                    
             cur_t -= 1
-        
+    
+   
 
 gc.collect()
 do_run()
