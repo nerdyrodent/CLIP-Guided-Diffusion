@@ -61,7 +61,7 @@ python generate_diffuse.py "A painting of an apple"
 
 An example using a number of options:
 ```sh
-python -p "An amazing fractal" -os=256 -cgs=1000 -tvs=50 -rgs=50 -cuts=16 -cutb=4 -t=200 -se=200 -m ViT-B/32 -o my_fractal.png
+python generate_diffuse.py -p "An amazing fractal" -os=256 -cgs=1000 -tvs=50 -rgs=50 -cuts=16 -cutb=4 -t=200 -se=200 -m ViT-B/32 -o my_fractal.png
 ```
 
 ## Citations
