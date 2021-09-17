@@ -21,6 +21,15 @@ Together with CLIP (https://github.com/openai/CLIP), they connect text prompts w
 
 Either the 256 or 512 model can be used here (by setting `--output_size` to either 256 or 512)
 
+## Environment
+* Ubuntu 20.04 (Windows untested but should work)
+* Anaconda
+* Nvidia RTX 3090
+
+Typical VRAM requirments:
+* 256 defaults: 10 GB
+* 512 defaults: 18 GB
+
 ## Set up
 
 This example uses [Anaconda](https://www.anaconda.com/products/individual#Downloads) to manage virtual Python environments.
