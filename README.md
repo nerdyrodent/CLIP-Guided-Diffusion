@@ -27,6 +27,7 @@ Some example images:
 
 <img src="./Samples/a_painting_of_an_apple.png" width="256px"></img><img src="./Samples/my_fractal_512.png" width="256px"></img>
 
+You may also be interested in [VQGAN-CLIP](https://github.com/nerdyrodent/VQGAN-CLIP)
 
 ## Environment
 * Ubuntu 20.04 (Windows untested but should work)
