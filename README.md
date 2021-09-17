@@ -93,9 +93,10 @@ python generate_diffuse.py -h
 ```
 
 ```sh
-usage: generate_diffuse.py [-h] [-p PROMPTS] [-ip IMAGE_PROMPTS] [-ii INIT_IMAGE] [-st SKIP_TIMESTEPS]
-[-is INIT_SCALE] [-m CLIP_MODEL] [-t TIMESTEPS] [-ds DIFFUSION_STEPS] [-se SAVE_EVERY] [-bs BATCH_SIZE]
-[-nb N_BATCHES] [-cuts CUTN] [-cutb CUTN_BATCHES] [-cutp CUT_POW] [-cgs CLIP_GUIDANCE_SCALE]
+usage: generate_diffuse.py [-h] [-p PROMPTS] [-ip IMAGE_PROMPTS] [-ii INIT_IMAGE]
+[-st SKIP_TIMESTEPS] [-is INIT_SCALE] [-m CLIP_MODEL] [-t TIMESTEPS]
+[-ds DIFFUSION_STEPS] [-se SAVE_EVERY] [-bs BATCH_SIZE] [-nb N_BATCHES] [-cuts CUTN]
+[-cutb CUTN_BATCHES] [-cutp CUT_POW] [-cgs CLIP_GUIDANCE_SCALE]
 [-tvs TV_SCALE] [-rgs RANGE_SCALE] [-os IMAGE_SIZE] [-s SEED] [-o OUTPUT] [-nfp] [-pl]
 ```
 
