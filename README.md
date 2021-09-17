@@ -85,6 +85,20 @@ python generate_diffuse.py -p "A painting of an apple:1.5|a surreal painting of 
 ```
 <img src="./Samples/weird_apple.png" width="256px"></img>
 
+### Other options
+
+There are a variety of other options to play with. Use help to display them:
+```sh
+python generate_diffuse.py -h
+```
+
+```sh
+usage: generate_diffuse.py [-h] [-p PROMPTS] [-ip IMAGE_PROMPTS] [-ii INIT_IMAGE] [-st SKIP_TIMESTEPS]
+[-is INIT_SCALE] [-m CLIP_MODEL] [-t TIMESTEPS] [-ds DIFFUSION_STEPS] [-se SAVE_EVERY] [-bs BATCH_SIZE]
+[-nb N_BATCHES] [-cuts CUTN] [-cutb CUTN_BATCHES] [-cutp CUT_POW] [-cgs CLIP_GUIDANCE_SCALE]
+[-tvs TV_SCALE] [-rgs RANGE_SCALE] [-os IMAGE_SIZE] [-s SEED] [-o OUTPUT] [-nfp] [-pl]
+```
+
 Examples using a number of options:
 ```sh
 python generate_diffuse.py -p "An amazing fractal" -os=256 -cgs=1000 -tvs=50 -rgs=50 -cuts=16 -cutb=4 -t=200 -se=200 -m ViT-B/32 -o my_fractal.png
