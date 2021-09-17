@@ -56,7 +56,7 @@ curl -OL 'https://openaipublic.blob.core.windows.net/diffusion/jul-2021/256x256_
 To just use the defaults along with your text, you can run:
 
 ```sh
-python generate_diffuse.py "A
+python generate_diffuse.py "A painting of an apple"
 ```
 
 An example using a number of options:
