@@ -65,12 +65,21 @@ curl -OL 'https://openaipublic.blob.core.windows.net/diffusion/jul-2021/256x256_
 To just use the defaults along with your text, you can run:
 
 ```sh
-python generate_diffuse.py "A painting of an apple"
+python generate_diffuse.py -p "A painting of an apple"
 ```
 
-An example using a number of options:
+### Multiple prompts
+
+Text and image prompts can be split using the pipe symbol in order to allow multiple prompts. You can also use a colon followed by a number to set a weight for that prompt. For example:
+
+```sh
+python generate_diffuse.py -p "A painting of an apple:1.5|a surreal painting of a weird apple:0.5"
+```
+
+Examples using a number of options:
 ```sh
 python generate_diffuse.py -p "An amazing fractal" -os=256 -cgs=1000 -tvs=50 -rgs=50 -cuts=16 -cutb=4 -t=200 -se=200 -m ViT-B/32 -o my_fractal.png
+python generate_diffuse.py -p "An impressionist painting of a cat:1.75|trending on artstation:0.25" -cgs=500 -tvs=55 -rgs=50 -cuts=16 -cutb=2 -t 100 -ds 2000 -m ViT-B/32 -pl -o cat_100.png
 ```
 
 ## Citations
