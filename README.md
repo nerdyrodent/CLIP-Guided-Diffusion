@@ -103,12 +103,12 @@ usage: generate_diffuse.py [-h] [-p PROMPTS] [-ip IMAGE_PROMPTS] [-ii INIT_IMAGE
 
 Examples using a number of options:
 ```sh
-python generate_diffuse.py -p "An amazing fractal" -os=256 -cgs=1000 -tvs=50 -rgs=50 -cuts=16 -cutb=4 -t=200 -se=200 -m ViT-B/32 -o my_fractal.png
+python generate_diffuse.py -p "An amazing fractal" -os=256 -cgs=1000 -tvs=50 -rgs=50 -cuts=16 -cutb=4 -t=200 -se=200 -m=ViT-B/32 -o=my_fractal.png
 ```
 <img src="./Samples/my_fractal.png" width="256px"></img>
 
 ```sh
-python generate_diffuse.py -p "An impressionist painting of a cat:1.75|trending on artstation:0.25" -cgs=500 -tvs=55 -rgs=50 -cuts=16 -cutb=2 -t 100 -ds 2000 -m ViT-B/32 -pl -o cat_100.png
+python generate_diffuse.py -p "An impressionist painting of a cat:1.75|trending on artstation:0.25" -cgs=500 -tvs=55 -rgs=50 -cuts=16 -cutb=2 -t=100 -ds=2000 -m=ViT-B/32 -pl -o=cat_100.png
 ```
 <img src="./Samples/cat_100.png" width="256px">
 
