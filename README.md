@@ -98,6 +98,10 @@ python generate_diffuse.py -p "An impressionist painting of a cat:1.75|trending 
 
 (Funny looking cat, but hey!)
 
+## Other repos
+
+You may also be interested in https://github.com/afiaka87/clip-guided-diffusion
+
 ## Citations
 
 ```bibtex
