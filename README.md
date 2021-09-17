@@ -21,6 +21,13 @@ Together with CLIP (https://github.com/openai/CLIP), they connect text prompts w
 
 Either the 256 or 512 model can be used here (by setting `--output_size` to either 256 or 512)
 
+Some example images:
+
+<img src="./Samples/cat_100.png" width="256px"></img><img src="./Samples/my_fractal.png" width="256px"></img>
+
+<img src="./Samples/a_painting_of_an_apple.png" width="256px"></img><img src="./Samples/my_fractal_512.png" width="256px"></img>
+
+
 ## Environment
 * Ubuntu 20.04 (Windows untested but should work)
 * Anaconda
@@ -60,13 +67,14 @@ pip install lpips
 curl -OL --http1.1 'https://the-eye.eu/public/AI/models/512x512_diffusion_unconditional_ImageNet/512x512_diffusion_uncond_finetune_008100.pt'
 curl -OL 'https://openaipublic.blob.core.windows.net/diffusion/jul-2021/256x256_diffusion_uncond.pt'
 ```
-## Inference
+## Run
 
-To just use the defaults along with your text, you can run:
+The simplest way to run is just to pass in your text prompt. For example:
 
 ```sh
 python generate_diffuse.py -p "A painting of an apple"
 ```
+<img src="./Samples/a_painting_of_an_apple.png" width="256px"></img>
 
 ### Multiple prompts
 
@@ -75,12 +83,20 @@ Text and image prompts can be split using the pipe symbol in order to allow mult
 ```sh
 python generate_diffuse.py -p "A painting of an apple:1.5|a surreal painting of a weird apple:0.5"
 ```
+<img src="./Samples/weird_apple.png" width="256px"></img>
 
 Examples using a number of options:
 ```sh
 python generate_diffuse.py -p "An amazing fractal" -os=256 -cgs=1000 -tvs=50 -rgs=50 -cuts=16 -cutb=4 -t=200 -se=200 -m ViT-B/32 -o my_fractal.png
+```
+<img src="./Samples/my_fractal.png" width="256px"></img>
+
+```sh
 python generate_diffuse.py -p "An impressionist painting of a cat:1.75|trending on artstation:0.25" -cgs=500 -tvs=55 -rgs=50 -cuts=16 -cutb=2 -t 100 -ds 2000 -m ViT-B/32 -pl -o cat_100.png
 ```
+<img src="./Samples/cat_100.png" width="256px">
+
+(Funny looking cat, but hey!)
 
 ## Citations
 
