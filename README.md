@@ -53,6 +53,12 @@ conda create --name cgd python=3.9
 conda activate cgd
 ```
 
+Download and change directory:
+```sh
+git clone https://github.com/nerdyrodent/CLIP-Guided-Diffusion.git
+cd CLIP-Guided-Diffusion
+```
+
 Run the setup file:
 ```sh
 ./setup.sh
