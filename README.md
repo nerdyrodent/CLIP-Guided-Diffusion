@@ -78,7 +78,7 @@ git clone https://github.com/openai/CLIP
 git clone https://github.com/crowsonkb/guided-diffusion
 pip install -e ./CLIP
 pip install -e ./guided-diffusion
-pip install lpips
+pip install lpips matplotlib
 
 # Download the diffusion models
 
