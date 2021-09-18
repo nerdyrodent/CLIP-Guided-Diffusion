@@ -117,6 +117,8 @@ python generate_diffuse.py -p "An impressionist painting of a cat:1.75|trending 
 
 You may also be interested in https://github.com/afiaka87/clip-guided-diffusion
 
+For upscaling images, try https://github.com/xinntao/Real-ESRGAN
+
 ## Citations
 
 ```bibtex
