@@ -85,7 +85,7 @@ vq_parser.add_argument("-cutb", "--cutn_batches", type=int, help="Number of cut 
 vq_parser.add_argument("-cutp", "--cut_power", type=float, help="Cut power", default=1., dest='cut_pow')
 
 vq_parser.add_argument("-cgs",  "--clip_scale", type=int, help="CLIP guidance scale", default=1000, dest='clip_guidance_scale') # Controls how much the image should look like the prompt.
-vq_parser.add_argument("-tvs",  "--tv_scale", type=int, help="Smoothness scale", default=150, dest='tv_scale') # Controls the smoothness of the final output.
+vq_parser.add_argument("-tvs",  "--tv_scale", type=float, help="Smoothness scale", default=150, dest='tv_scale') # Controls the smoothness of the final output.
 vq_parser.add_argument("-rgs",  "--range_scale", type=int, help="RGB range scale", default=50, dest='range_scale') # Controls how far out of range RGB values are allowed to be.
 
 vq_parser.add_argument("-os",   "--output_size", type=int, help="Output image size (256 or 512)", default=256, dest='image_size')
@@ -93,7 +93,10 @@ vq_parser.add_argument("-s",    "--seed", type=int, help="Seed", default=None, d
 vq_parser.add_argument("-o",    "--output", type=str, help="Output file", default="output.png", dest='output')
 
 vq_parser.add_argument("-nfp",  "--no_fp16", action='store_false', help="Disable fp16?", dest='use_fp16')
+vq_parser.add_argument("-nbm",  "--no_benchmark", action='store_false', help="Disable CuDNN benchmark?", dest='cudnn_bm')
 vq_parser.add_argument("-pl",   "--plot_loss", action='store_true', help="Plot loss?", dest='graph_loss')
+
+vq_parser.add_argument("-dev",  "--cuda_device", type=str, help="CUDA Device", default='cuda:0', dest='cuda_device')
 
 
 # Execute the parse_args() method
@@ -121,8 +124,9 @@ skip_timesteps = args.skip_timesteps
 init_scale = args.init_scale
 seed = args.seed
 
-# Use all the VRAM!
-torch.backends.cudnn.benchmark = True
+# Use all the things!
+if args.cudnn_bm:
+    torch.backends.cudnn.benchmark = True
 
 
 # Define necessary functions
@@ -207,7 +211,7 @@ model_config.update({
 })
 
 # Load models
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+device = torch.device(args.cuda_device if torch.cuda.is_available() else 'cpu')
 print('Device:', device)
 print('Size: ', args.image_size)
 
@@ -288,22 +292,27 @@ def do_run():
             x_in = out['pred_xstart'] * fac + x * (1 - fac)
             x_in_grad = torch.zeros_like(x_in)
             
+            # Encode image and calculate spherical distance loss
             for i in range(cutn_batches):
                 clip_in = normalize(make_cutouts(x_in.add(1).div(2)))
                 image_embeds = clip_model.encode_image(clip_in).float()
                 dists = spherical_dist_loss(image_embeds.unsqueeze(1), target_embeds.unsqueeze(0))
                 dists = dists.view([cutn, n, -1])
                 losses = dists.mul(weights).sum(2).mean(0)
+
+                # Saving loss for plot
+                loss_test.append(losses.sum().item())                
+                                
                 x_in_grad += torch.autograd.grad(losses.sum() * clip_guidance_scale, x_in)[0] / cutn_batches
-                loss_test.append(losses.item()) # Loss test
             
             tv_losses = tv_loss(x_in)
-            range_losses = range_loss(out['pred_xstart'])
-            loss = tv_losses.sum() * tv_scale + range_losses.sum() * range_scale
+            range_losses = range_loss(out['pred_xstart'])            
+            loss = (tv_losses.sum() * tv_scale) + (range_losses.sum() * range_scale)
             
             if init is not None and init_scale:
                 init_losses = lpips_model(x_in, init)
                 loss = loss + init_losses.sum() * init_scale
+                
             x_in_grad += torch.autograd.grad(loss, x_in)[0]
             grad = -torch.autograd.grad(x_in, x, x_in_grad)[0]
             return grad
@@ -312,6 +321,10 @@ def do_run():
         sample_fn = diffusion.ddim_sample_loop_progressive
     else:
         sample_fn = diffusion.p_sample_loop_progressive
+    
+    # Hax
+    #hax = False    
+    #end = int(''.join(filter(str.isdigit, args.timesteps)))
 
     for i in range(n_batches):
         cur_t = diffusion.num_timesteps - skip_timesteps - 1
@@ -342,10 +355,10 @@ def do_run():
                     plt.plot(np.array(loss_test), 'r')    
                     plot_filename = (os.path.basename(args.output).split('.')[0])
                     plot_filename = plot_filename + '-loss.jpg'
-                    plt.savefig(plot_filename)                     
+                    plot_filename = os.path.join(os.path.dirname(args.output), plot_filename)
+                    plt.savefig(plot_filename)
                     
             cur_t -= 1
-    
    
 
 gc.collect()
