@@ -22,10 +22,9 @@ Together with CLIP (https://github.com/openai/CLIP), they connect text prompts w
 Either the 256 or 512 model can be used here (by setting `--output_size` to either 256 or 512)
 
 Some example images:
+"A woman standing in a park:"
 
-<img src="./Samples/cat_100.png" width="256px"></img><img src="./Samples/my_fractal.png" width="256px"></img>
-
-<img src="./Samples/a_painting_of_an_apple.png" width="256px"></img><img src="./Samples/my_fractal_512.png" width="256px"></img>
+<img src="./Samples/woman_collage.jpg" width="640px">
 
 You may also be interested in [VQGAN-CLIP](https://github.com/nerdyrodent/VQGAN-CLIP)
 
