@@ -22,6 +22,7 @@ Together with CLIP (https://github.com/openai/CLIP), they connect text prompts w
 Either the 256 or 512 model can be used here (by setting `--output_size` to either 256 or 512)
 
 Some example images:
+
 "A woman standing in a park":
 
 <img src="./Samples/woman_collage.jpg" width="640px">
