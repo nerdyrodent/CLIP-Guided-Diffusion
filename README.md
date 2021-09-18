@@ -31,6 +31,11 @@ Some example images:
 
 <img src="./Samples/alien_collage.jpg" width="640px">
 
+"A painting of a man":
+
+<img src="./Samples/man_collage.jpg" width="640px">
+
+*images enhanced with [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)
 
 You may also be interested in [VQGAN-CLIP](https://github.com/nerdyrodent/VQGAN-CLIP)
 
