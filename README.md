@@ -118,6 +118,18 @@ usage: generate_diffuse.py [-h] [-p PROMPTS] [-ip IMAGE_PROMPTS] [-ii INIT_IMAGE
 [-tvs TV_SCALE] [-rgs RANGE_SCALE] [-os IMAGE_SIZE] [-s SEED] [-o OUTPUT] [-nfp] [-pl]
 ```
 
+### init_image 
+* 'skip_timesteps' needs to be between approx. 200 and 500 when using an init image.
+* 'init_scale' enhances the effect of the init image, a good value is 1000.
+
+### timesteps
+The number of timesteps, or one of ddim25, ddim50, ddim150, ddim250, ddim500, ddim1000. Must go into diffusion_steps.
+
+### image guidance
+* 'clip_guidance_scale' Controls how much the image should look like the prompt.
+* 'tv_scale' Controls the smoothness of the final output.
+* 'range_scale' Controls how far out of range RGB values are allowed to be.
+
 Examples using a number of options:
 ```sh
 python generate_diffuse.py -p "An amazing fractal" -os=256 -cgs=1000 -tvs=50 -rgs=50 -cuts=16 -cutb=4 -t=200 -se=200 -m=ViT-B/32 -o=my_fractal.png
