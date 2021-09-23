@@ -84,8 +84,8 @@ vq_parser.add_argument("-se",   "--save_every", type=int, help="Image update fre
 vq_parser.add_argument("-bs",   "--batch_size", type=int, help="Batch size", default=1, dest='batch_size')
 vq_parser.add_argument("-nb",   "--num_batches", type=int, help="Number of batches", default=1, dest='n_batches')
 
-vq_parser.add_argument("-cuts", "--num_cuts", type=int, help="Number of cuts", default=32, dest='cutn')
-vq_parser.add_argument("-cutb", "--cutn_batches", type=int, help="Number of cut batches", default=1, dest='cutn_batches') # Gradient accumulate every
+vq_parser.add_argument("-cuts", "--num_cuts", type=int, help="Number of cuts", default=16, dest='cutn')
+vq_parser.add_argument("-cutb", "--cutn_batches", type=int, help="Number of cut batches", default=2, dest='cutn_batches') # Gradient accumulate every
 vq_parser.add_argument("-cutp", "--cut_power", type=float, help="Cut power", default=1., dest='cut_pow')
 
 vq_parser.add_argument("-cgs",  "--clip_scale", type=int, help="CLIP guidance scale", default=1000, dest='clip_guidance_scale') # Controls how much the image should look like the prompt.
@@ -184,8 +184,8 @@ class MakeCutouts(nn.Module):
             offsetx = torch.randint(0, sideX - size + 1, ())
             offsety = torch.randint(0, sideY - size + 1, ())
             cutout = input[:, :, offsety:offsety + size, offsetx:offsetx + size]
-            #cutouts.append(F.adaptive_avg_pool2d(cutout, self.cut_size))
-            cutouts.append(F.adaptive_max_pool2d(cutout, self.cut_size))
+            cutouts.append(F.adaptive_avg_pool2d(cutout, self.cut_size))
+            #cutouts.append(F.adaptive_max_pool2d(cutout, self.cut_size))
 
         return torch.cat(cutouts)
 
