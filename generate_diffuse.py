@@ -46,7 +46,7 @@ from torch import nn
 from torch.nn import functional as F
 from torchvision import transforms
 from torchvision.transforms import functional as TF
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 
 sys.path.append('./CLIP')
 sys.path.append('./guided-diffusion')
@@ -58,6 +58,10 @@ from guided_diffusion.script_util import create_model_and_diffusion, model_and_d
 #import kornia.augmentation as K
 import matplotlib.pyplot as plt
 import numpy as np
+
+# Video stuff
+from subprocess import Popen, PIPE
+import re
 
 # Args
 # Create the parser
@@ -73,7 +77,7 @@ vq_parser.add_argument("-is",   "--init_scale", type=int, help="Initial image sc
 
 vq_parser.add_argument("-m",    "--clip_model", type=str, help="CLIP model (e.g. ViT-B/32, ViT-B/16)", default='ViT-B/16', dest='clip_model')
 
-vq_parser.add_argument("-t",    "--timesteps", type=str, help="Number of timesteps", default='1000', dest='timesteps') # num iterations, or one of ddim25, ddim50, ddim150, ddim250, ddim500, ddim1000 - must be mod0 of diffusion_steps
+vq_parser.add_argument("-t",    "--timesteps", type=str, help="Number of timesteps", default='1000', dest='timesteps') # number(s) (Can be comma separated) or one of ddim25, ddim50, ddim150, ddim250, ddim500, ddim1000 (must be mod0 of diffusion_steps)
 vq_parser.add_argument("-ds",   "--diffusion_steps", type=int, help="Diffusion steps", default=1000, dest='diffusion_steps')
 vq_parser.add_argument("-se",   "--save_every", type=int, help="Image update frequency", default=100, dest='save_every')
 
@@ -92,6 +96,8 @@ vq_parser.add_argument("-os",   "--output_size", type=int, help="Output image si
 vq_parser.add_argument("-s",    "--seed", type=int, help="Seed", default=None, dest='seed')
 vq_parser.add_argument("-o",    "--output", type=str, help="Output file", default="output.png", dest='output')
 
+vq_parser.add_argument("-vid",  "--video", action='store_true', help="Create video frames (steps)?", dest='make_video')
+
 vq_parser.add_argument("-nfp",  "--no_fp16", action='store_false', help="Disable fp16?", dest='use_fp16')
 vq_parser.add_argument("-nbm",  "--no_benchmark", action='store_false', help="Disable CuDNN benchmark?", dest='cudnn_bm')
 vq_parser.add_argument("-pl",   "--plot_loss", action='store_true', help="Plot loss?", dest='graph_loss')
@@ -105,11 +111,24 @@ args = vq_parser.parse_args()
 if args.image_size != 256 and args.image_size != 512:
     args.image_size = 256
 
+# Make video steps directory
+if args.make_video:
+    if not os.path.exists('steps'):
+        os.mkdir('steps')
+
+# Use all the things!
+if args.cudnn_bm:
+    torch.backends.cudnn.benchmark = True
+
 # Settings
+# Text prompts
 prompts = [phrase.strip() for phrase in args.prompts.split("|")]
+
+# Image prompts
 if args.image_prompts:
     args.image_prompts = args.image_prompts.split("|")
     args.image_prompts = [image.strip() for image in args.image_prompts]    
+    
 image_prompts = args.image_prompts
 batch_size = args.batch_size
 clip_guidance_scale = args.clip_guidance_scale
@@ -123,10 +142,6 @@ init_image = args.init_image
 skip_timesteps = args.skip_timesteps
 init_scale = args.init_scale
 seed = args.seed
-
-# Use all the things!
-if args.cudnn_bm:
-    torch.backends.cudnn.benchmark = True
 
 
 # Define necessary functions
@@ -169,7 +184,9 @@ class MakeCutouts(nn.Module):
             offsetx = torch.randint(0, sideX - size + 1, ())
             offsety = torch.randint(0, sideY - size + 1, ())
             cutout = input[:, :, offsety:offsety + size, offsetx:offsetx + size]
-            cutouts.append(F.adaptive_avg_pool2d(cutout, self.cut_size))
+            #cutouts.append(F.adaptive_avg_pool2d(cutout, self.cut_size))
+            cutouts.append(F.adaptive_max_pool2d(cutout, self.cut_size))
+
         return torch.cat(cutouts)
 
 
@@ -301,7 +318,8 @@ def do_run():
                 losses = dists.mul(weights).sum(2).mean(0)
 
                 # Saving loss for plot
-                loss_test.append(losses.sum().item())                
+                if args.graph_loss:
+                    loss_test.append(losses.sum().item())                
                                 
                 x_in_grad += torch.autograd.grad(losses.sum() * clip_guidance_scale, x_in)[0] / cutn_batches
             
@@ -321,10 +339,6 @@ def do_run():
         sample_fn = diffusion.ddim_sample_loop_progressive
     else:
         sample_fn = diffusion.p_sample_loop_progressive
-    
-    # Hax
-    #hax = False    
-    #end = int(''.join(filter(str.isdigit, args.timesteps)))
 
     for i in range(n_batches):
         cur_t = diffusion.num_timesteps - skip_timesteps - 1
@@ -347,19 +361,87 @@ def do_run():
                 for k, image in enumerate(sample['pred_xstart']):
                     #filename = f'progress_{i * batch_size + k:05}.png'
                     #TF.to_pil_image(image.add(1).div(2).clamp(0, 1)).save(filename)
-                    TF.to_pil_image(image.add(1).div(2).clamp(0, 1)).save(args.output)
+                    if i > 0:
+                        b_filename = (os.path.basename(args.output).split('.')[0])
+                        b_filename = b_filename + '-' + str(i) + '.png'
+                        b_filename = os.path.join(os.path.dirname(args.output), b_filename)
+                    else:
+                        b_filename = args.output
+
+                    TF.to_pil_image(image.add(1).div(2).clamp(0, 1)).save(b_filename)
                     tqdm.write(f'Batch {i}, step {j}, output {k}:')
                     #display.display(display.Image(filename))
 
                 if args.graph_loss:
                     plt.plot(np.array(loss_test), 'r')    
                     plot_filename = (os.path.basename(args.output).split('.')[0])
-                    plot_filename = plot_filename + '-loss.jpg'
+                    plot_filename = plot_filename + '-' + str(i) + '-loss.jpg'
                     plot_filename = os.path.join(os.path.dirname(args.output), plot_filename)
                     plt.savefig(plot_filename)
-                    
+            
+            if args.make_video:
+                for k, image in enumerate(sample['pred_xstart']):
+                    step_filename = str(j) + '.png'
+                    frame_filename = os.path.join('steps', step_filename)
+                    TF.to_pil_image(image.add(1).div(2).clamp(0, 1)).save(frame_filename)            
+            
+            # Countdown
             cur_t -= 1
-   
 
-gc.collect()
-do_run()
+        # Video generation
+        if args.make_video:
+            init_frame = 1      # Initial video frame
+            last_frame = j      # This will raise an error if that number of frames does not exist.
+
+            length = 5          # Desired time of the video in seconds
+
+            min_fps = 10
+            max_fps = 60
+            
+            total_frames = last_frame-init_frame
+
+            frames = []
+            tqdm.write('Generating video...')
+            for k in range(init_frame,last_frame):
+                temp = Image.open("./steps/"+ str(k) +'.png')
+                keep = temp.copy()
+                frames.append(keep)
+                temp.close()
+            
+            fps = np.clip(total_frames/length,min_fps,max_fps)
+
+            # Batches
+            if i > 0:
+                m_filename = (os.path.basename(args.output).split('.')[0])
+                m_filename = b_filename + '-' + str(i) + '.png'
+                m_filename = os.path.join(os.path.dirname(args.output), b_filename)
+            else:
+                m_filename = args.output
+
+            output_file = re.compile('\.png$').sub('.mp4', m_filename)
+            
+            try:
+                p = Popen(['ffmpeg',
+                           '-y',
+                           '-f', 'image2pipe',
+                           '-vcodec', 'png',
+                           '-r', str(fps),
+                           '-i',
+                           '-',
+                           '-vcodec', 'libx264',
+                           '-r', str(fps),
+                           '-pix_fmt', 'yuv420p',
+                           '-crf', '17',
+                           '-preset', 'veryslow',
+                           output_file], stdin=PIPE)
+            except FileNotFoundError:
+                print("ffmpeg command failed - check your installation")        
+            for im in tqdm(frames):
+                im.save(p.stdin, 'PNG')
+            p.stdin.close()
+            p.wait()
+
+# Run   
+if __name__ == "__main__":
+    gc.collect()
+    do_run()         
