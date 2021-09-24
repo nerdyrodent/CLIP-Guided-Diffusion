@@ -143,6 +143,10 @@ python generate_diffuse.py -p "An impressionist painting of a cat:1.75|trending 
 
 (Funny looking cat, but hey!)
 
+## Videos
+
+Using the ```-vid``` option saves the diffusion steps and makes a video. The steps can also be upscaled if you have the portable version of https://github.com/xinntao/Real-ESRGAN installed locally, and opt to do so.
+
 ## Other repos
 
 You may also be interested in https://github.com/afiaka87/clip-guided-diffusion
