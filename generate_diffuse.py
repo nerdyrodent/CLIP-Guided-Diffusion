@@ -60,7 +60,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Video stuff
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, run
 import re
 
 # Args
@@ -97,6 +97,7 @@ vq_parser.add_argument("-s",    "--seed", type=int, help="Seed", default=None, d
 vq_parser.add_argument("-o",    "--output", type=str, help="Output file", default="output.png", dest='output')
 
 vq_parser.add_argument("-vid",  "--video", action='store_true', help="Create video frames (steps)?", dest='make_video')
+vq_parser.add_argument("-vup",  "--video_upscale", action='store_true', help="Upscale video? (needs Real-ESRGAN executable)", dest='upscale_video')
 
 vq_parser.add_argument("-nfp",  "--no_fp16", action='store_false', help="Disable fp16?", dest='use_fp16')
 vq_parser.add_argument("-nbm",  "--no_benchmark", action='store_false', help="Disable CuDNN benchmark?", dest='cudnn_bm')
@@ -399,11 +400,23 @@ def do_run():
             max_fps = 60
             
             total_frames = last_frame-init_frame
+            
+            if args.upscale_video:
+                if not os.path.exists('upscaled_steps'):
+                    os.mkdir('upscaled_steps')
+                try:
+                    run("./realesrgan-ncnn-vulkan -i steps -o upscaled_steps", check=True, shell=True)
+                except FileNotFoundError:
+                    print("realesrgan-ncnn-vulkan not found")
+                    args.upscale_video = False
 
             frames = []
             tqdm.write('Generating video...')
             for k in range(init_frame,last_frame):
-                temp = Image.open("./steps/"+ str(k) +'.png')
+                if args.upscale_video:
+                    temp = Image.open("./upscaled_steps/"+ str(k) +'.png')
+                else:
+                    temp = Image.open("./steps/"+ str(k) +'.png')
                 keep = temp.copy()
                 frames.append(keep)
                 temp.close()
@@ -413,8 +426,8 @@ def do_run():
             # Batches
             if i > 0:
                 m_filename = (os.path.basename(args.output).split('.')[0])
-                m_filename = b_filename + '-' + str(i) + '.png'
-                m_filename = os.path.join(os.path.dirname(args.output), b_filename)
+                m_filename = m_filename + '-' + str(i) + '.png'
+                m_filename = os.path.join(os.path.dirname(args.output), m_filename)
             else:
                 m_filename = args.output
 
