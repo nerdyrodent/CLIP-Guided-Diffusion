@@ -5,7 +5,7 @@ git clone https://github.com/openai/CLIP
 git clone https://github.com/crowsonkb/guided-diffusion
 pip install -e ./CLIP
 pip install -e ./guided-diffusion
-pip install lpips matplotlib
+pip install lpips matplotlib IPython requests
 
 # Download the diffusion models
 if ! [ -f ./512x512_diffusion_uncond_finetune_008100.pt ]; then
