@@ -5,11 +5,11 @@ git clone https://github.com/openai/CLIP
 git clone https://github.com/crowsonkb/guided-diffusion
 pip install -e ./CLIP
 pip install -e ./guided-diffusion
-pip install lpips
+pip install lpips matplotlib IPython requests
 
 # Download the diffusion models
 if ! [ -f ./512x512_diffusion_uncond_finetune_008100.pt ]; then
-    curl -COL --http1.1 'https://the-eye.eu/public/AI/models/512x512_diffusion_unconditional_ImageNet/512x512_diffusion_uncond_finetune_008100.pt'  
+    curl -OL --http1.1 'https://the-eye.eu/public/AI/models/512x512_diffusion_unconditional_ImageNet/512x512_diffusion_uncond_finetune_008100.pt'  
 fi
 
 if ! [ -f ./256x256_diffusion_uncond.pt ]; then
