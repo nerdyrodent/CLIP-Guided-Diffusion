@@ -123,7 +123,7 @@ usage: generate_diffuse.py [-h] [-p PROMPTS] [-ip IMAGE_PROMPTS] [-ii INIT_IMAGE
 * 'init_scale' enhances the effect of the init image, a good value is 1000.
 
 ### timesteps
-The number of timesteps, or one of ddim25, ddim50, ddim150, ddim250, ddim500, ddim1000. Must go into diffusion_steps.
+The number of timesteps (or one of ddim25, ddim50, ddim150, ddim250, ddim500, ddim1000) must go into diffusion_steps.
 
 ### image guidance
 * 'clip_guidance_scale' Controls how much the image should look like the prompt.
