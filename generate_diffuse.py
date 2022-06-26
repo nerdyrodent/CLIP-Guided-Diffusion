@@ -37,7 +37,7 @@ import math
 import sys
 import os
 
-from IPython import display
+#from IPython import display
 import lpips
 from PIL import Image
 import requests
