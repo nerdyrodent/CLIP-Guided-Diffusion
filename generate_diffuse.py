@@ -65,7 +65,7 @@ import re
 
 # Args
 # Create the parser
-vq_parser = argparse.ArgumentParser(description='Image generation using VQGAN+CLIP')
+vq_parser = argparse.ArgumentParser(description='Image generation using CLIP + diffusion')
 
 # Add the arguments
 vq_parser.add_argument("-p",    "--prompts", type=str, help="Text prompts", default="A painting of a nerdy rodent", dest='prompts')
